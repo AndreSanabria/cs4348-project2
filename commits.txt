@@ -1,0 +1,25 @@
+﻿b1657ab | 2026-04-16 18:59:49 -0500 | Andre | Set up initial bank simulation scaffold
+
+
+8c4810e | 2026-04-17 12:21:47 -0500 | Andre | Got first teller-customer flow working before fixing exit-order synchronization
+
+
+473cfd4 | 2026-04-17 13:39:38 -0500 | Andre | Moved from the first working teller flow to real transaction constraints after running into some synchronization issues. Next step is adding the manager and safe constraints
+
+
+94fb3a5 | 2026-04-17 14:30:40 -0500 | Andre | Moved from manager/safe transaction control to completing the full day bank lifecycle by adding door handling and an explicit end-of-day close message.
+In the previous step, the teller-customer transaction flow was already working with manager permission and safe access constraints. This commit finishes the remaining lifecycle behavior:
+- added door synchronization so customer entry/exit follows the two-at-a-time door rule
+- added the final closing output after all customers are served and all tellers leave
+
+After rerunning the simulation, the output now covers the full assignment flow from arrival and line/wait behavior through transaction completion, customer departure, teller shutdown, and final bank close.
+
+Next I have to review output ordering and synchronization details line-by-line to ensure consistency and match the expected assignment behavior as closely as possible.
+
+
+e0e0bf4 | 2026-04-17 15:12:01 -0500 | Andre | The teller threads only printed 'ready to serve' once at startup, which made the output drift from the required teller action sequence and the provided sample where tellers announce readiness each time they become available again, so I moved the readiness log from initialization into the teller service loop so each teller now logs readiness before waiting for the next customer.
+I also reran the full 50-customer simulation and verified clean completion (all customers leave, manager/safe interactions remain synchronized, all tellers leave for the day, and final bank-close message is printed).
+
+
+2096b4d | 2026-04-17 15:30:11 -0500 | Andre | Compleated README
+
