@@ -15,6 +15,9 @@ ready_tellers = 0
 waiting_customers = queue.Queue()
 customer_waiting = threading.Semaphore(0)
 
+manager_semaphore = threading.Semaphore(1)
+safe_semaphore = threading.Semaphore(2)
+
 
 def log(thread_type, thread_id, message, partner_type=None, partner_id=None):
     with print_lock:
@@ -22,6 +25,10 @@ def log(thread_type, thread_id, message, partner_type=None, partner_id=None):
             print(f"{thread_type} {thread_id} []: {message}")
         else:
             print(f"{thread_type} {thread_id} [{partner_type} {partner_id}]: {message}")
+
+
+def sleep_ms(min_ms, max_ms):
+    time.sleep(random.uniform(min_ms, max_ms) / 1000.0)
 
 
 class Teller(threading.Thread):
@@ -78,8 +85,64 @@ class Teller(threading.Thread):
                 customer.customer_id,
             )
 
-            customer.transaction_done.release()
+            if customer.transaction == "withdrawal":
+                log(
+                    "Teller",
+                    self.teller_id,
+                    "going to the manager",
+                    "Customer",
+                    customer.customer_id,
+                )
+                manager_semaphore.acquire()
+                log(
+                    "Teller",
+                    self.teller_id,
+                    "getting manager's permission",
+                    "Customer",
+                    customer.customer_id,
+                )
+                sleep_ms(5, 30)
+                log(
+                    "Teller",
+                    self.teller_id,
+                    "got manager's permission",
+                    "Customer",
+                    customer.customer_id,
+                )
+                manager_semaphore.release()
 
+            log(
+                "Teller",
+                self.teller_id,
+                "going to safe",
+                "Customer",
+                customer.customer_id,
+            )
+            safe_semaphore.acquire()
+            log(
+                "Teller",
+                self.teller_id,
+                "enter safe",
+                "Customer",
+                customer.customer_id,
+            )
+            sleep_ms(10, 50)
+            log(
+                "Teller",
+                self.teller_id,
+                "leaving safe",
+                "Customer",
+                customer.customer_id,
+            )
+            safe_semaphore.release()
+
+            log(
+                "Teller",
+                self.teller_id,
+                f"finishes {customer.transaction} transaction.",
+                "Customer",
+                customer.customer_id,
+            )
             log(
                 "Teller",
                 self.teller_id,
@@ -87,6 +150,8 @@ class Teller(threading.Thread):
                 "Customer",
                 customer.customer_id,
             )
+
+            customer.transaction_done.release()
             customer.left_teller.acquire()
 
 
