@@ -4,11 +4,13 @@ Thread-based bank simulation in Python using the threading module and semaphores
 
 ## Current progress
 
-Initial scaffold:
+Implemented so far:
 - creates teller threads
 - creates customer threads
 - opens the bank only after all tellers are ready
-- logs the early customer arrival flow
+- places customers into a shared line
+- assigns waiting customers to available tellers
+- synchronizes basic teller-customer interaction
 
 ## Run
 
