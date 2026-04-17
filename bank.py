@@ -41,12 +41,12 @@ class Teller(threading.Thread):
         global ready_tellers
 
         with ready_lock:
-            log("Teller", self.teller_id, "ready to serve")
             ready_tellers += 1
             if ready_tellers == NUM_TELLERS:
                 bank_open.set()
 
         while True:
+            log("Teller", self.teller_id, "ready to serve")
             log("Teller", self.teller_id, "waiting for a customer")
             customer_waiting.acquire()
             customer = waiting_customers.get()
