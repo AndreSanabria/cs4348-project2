@@ -17,6 +17,7 @@ customer_waiting = threading.Semaphore(0)
 
 manager_semaphore = threading.Semaphore(1)
 safe_semaphore = threading.Semaphore(2)
+door_semaphore = threading.Semaphore(2)
 
 
 def log(thread_type, thread_id, message, partner_type=None, partner_id=None):
@@ -181,7 +182,10 @@ class Customer(threading.Thread):
         bank_open.wait()
 
         log("Customer", self.customer_id, "going to bank.")
+        door_semaphore.acquire()
         log("Customer", self.customer_id, "entering bank.")
+        door_semaphore.release()
+
         log("Customer", self.customer_id, "getting in line.")
 
         waiting_customers.put(self)
@@ -231,7 +235,9 @@ class Customer(threading.Thread):
         self.left_teller.release()
 
         log("Customer", self.customer_id, "goes to door")
+        door_semaphore.acquire()
         log("Customer", self.customer_id, "leaves the bank")
+        door_semaphore.release()
 
 
 def main():
@@ -253,6 +259,9 @@ def main():
 
     for teller in tellers:
         teller.join()
+
+    with print_lock:
+        print("The bank closes for the day.")
 
 
 if __name__ == "__main__":
